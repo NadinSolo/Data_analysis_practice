@@ -1,0 +1,60 @@
+install.packages("devtools")
+devtools::install_github("jhudsl/collegeIncome")
+library(collegeIncome)
+data(college)
+devtools::install_github("jhudsl/matahari")
+library(matahari)
+dance_start(value = FALSE, contents = FALSE)
+
+
+head(college)
+str(college)
+library(dplyr)
+
+#creating tible of major_category  to median_mean
+coll1 <- college %>%select(major_category, median)
+coll2 <- coll1 %>% group_by(major_category) %>% summarize(median_mean = mean(median, na.rm = TRUE))
+coll2 <- coll2 %>% arrange(desc(median_mean))                                        
+coll2 #     
+#maximum average earnings of full-time employees all year round in the main categorie
+#Business,Biology & Life Science, Agriculture & Natural Resources
+
+#create plot  between college major category and  Median earnings of full-time,
+# year-round workers association 
+major_category<-as.factor (major_category)                       
+boxplot(median/100 ~ major_category , data = coll1, main = "significant association between college major category and income ",
+        ylab="income (1:100)", las = 2)                         
+
+
+#Creating a regression model
+fit<- lm(median ~ major_category, data=college)
+summary(fit)
+# intercept is the major category Agriculture & Natural Resources. 
+#All the different variables are compared to the intercept.
+#Conclusions: data analysis suggests that the model is significant:
+#F-statistic: 1.233 on 15 and 157 DF, Adjusted R-squared:  0.01995,
+#but it requires further adjustment:Residuals:Median=-2893
+# p-value > 0.05,which indicates that the model is most likely not significant
+par(mfrow = c(2,2))
+plot(fit)
+confint(fit)
+deviance(fit)
+resid(fit)
+#graph of model residuals
+plot(resid(fit))
+#Analysis of Variance Table
+anova(fit)
+
+#Let's add another variable to the regression model:perc_non_college_jobs and 
+#perc_college_jobs
+fit2<- lm(median ~ major_category+perc_non_college_jobs, data=college)
+summary(fit2)
+
+
+fit3<- lm(median ~ major_category+perc_college_jobs, data=college)
+summary(fit3)
+#let's compare the models fit2 and fit3 using the function anova()
+anova(fit2, fit3)
+library(matahari)
+dance_save("~/Dokuments/college_major_analysis.rds")
+
